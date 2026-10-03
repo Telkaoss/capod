@@ -14,6 +14,7 @@ import androidx.compose.material.icons.twotone.FilterList
 import androidx.compose.material.icons.automirrored.twotone.Message
 import androidx.compose.material.icons.twotone.Notifications
 import androidx.compose.material.icons.twotone.Palette
+import androidx.compose.material.icons.twotone.UnfoldLess
 import androidx.compose.material.icons.twotone.VisibilityOff
 import androidx.compose.material.icons.automirrored.twotone.ViewList
 import androidx.compose.material3.Icon
@@ -59,6 +60,7 @@ fun GeneralSettingsScreenHost(vm: GeneralSettingsViewModel = hiltViewModel()) {
             onShowConnectedNotificationChanged = { enabled -> vm.setShowConnectedNotification(enabled) },
             onKeepNotificationAfterDisconnectChanged = { enabled -> vm.setKeepNotificationAfterDisconnect(enabled) },
             onShowBatteryInStatusBarChanged = { enabled -> vm.setShowBatteryInStatusBar(enabled) },
+            onUseCompactNotificationChanged = { enabled -> vm.setUseCompactNotification(enabled) },
             onOffloadedFilteringDisabledChanged = { disabled -> vm.setOffloadedFilteringDisabled(disabled) },
             onOffloadedBatchingDisabledChanged = { disabled -> vm.setOffloadedBatchingDisabled(disabled) },
             onUseIndirectScanResultCallbackChanged = { enabled -> vm.setUseIndirectScanResultCallback(enabled) },
@@ -82,6 +84,7 @@ fun GeneralSettingsScreen(
     onUseIndirectScanResultCallbackChanged: (Boolean) -> Unit,
     onHideUnmatchedDevicesChanged: (Boolean) -> Unit,
     onShowBatteryInStatusBarChanged: (Boolean) -> Unit = {},
+    onUseCompactNotificationChanged: (Boolean) -> Unit = {},
     onThemeModeSelected: (ThemeMode) -> Unit = {},
     onThemeStyleSelected: (ThemeStyle) -> Unit = {},
     onThemeColorSelected: (ThemeColor) -> Unit = {},
@@ -224,6 +227,21 @@ fun GeneralSettingsScreen(
             }
             item {
                 SettingsBaseItem(
+                    title = stringResource(R.string.settings_monitor_compact_notification_label),
+                    subtitle = stringResource(R.string.settings_monitor_compact_notification_description),
+                    icon = Icons.TwoTone.UnfoldLess,
+                    onClick = { onUseCompactNotificationChanged(!state.useCompactNotification) },
+                    trailingContent = {
+                        Switch(
+                            checked = state.useCompactNotification,
+                            onCheckedChange = onUseCompactNotificationChanged,
+                            modifier = Modifier.padding(start = 16.dp),
+                        )
+                    },
+                )
+            }
+            item {
+                SettingsBaseItem(
                     title = stringResource(R.string.settings_overview_hide_unmatched_label),
                     subtitle = stringResource(R.string.settings_overview_hide_unmatched_description),
                     icon = Icons.TwoTone.VisibilityOff,
@@ -308,6 +326,7 @@ private fun previewGeneralState(isPro: Boolean) = GeneralSettingsViewModel.State
     showConnectedNotification = true,
     keepNotificationAfterDisconnect = false,
     showBatteryInStatusBar = false,
+    useCompactNotification = false,
     isOffloadedFilteringDisabled = false,
     isOffloadedBatchingDisabled = false,
     useIndirectScanResultCallback = false,

@@ -38,6 +38,7 @@ class GeneralSettingsViewModel @Inject constructor(
         val showConnectedNotification: Boolean,
         val keepNotificationAfterDisconnect: Boolean,
         val showBatteryInStatusBar: Boolean,
+        val useCompactNotification: Boolean,
         val isOffloadedFilteringDisabled: Boolean,
         val isOffloadedBatchingDisabled: Boolean,
         val useIndirectScanResultCallback: Boolean,
@@ -56,9 +57,10 @@ class GeneralSettingsViewModel @Inject constructor(
             generalSettings.useExtraMonitorNotification.flow,
             generalSettings.keepConnectedNotificationAfterDisconnect.flow,
             generalSettings.showBatteryInStatusBar.flow,
-        ) { showNotif, keepNotif, batteryIcon ->
+            generalSettings.useCompactNotification.flow,
+        ) { showNotif, keepNotif, batteryIcon, compact ->
             @Suppress("USELESS_CAST")
-            arrayOf<Any>(showNotif as Any, keepNotif as Any, batteryIcon as Any)
+            arrayOf<Any>(showNotif as Any, keepNotif as Any, batteryIcon as Any, compact as Any)
         },
         combine(
             generalSettings.isOffloadedFilteringDisabled.flow,
@@ -77,6 +79,7 @@ class GeneralSettingsViewModel @Inject constructor(
             showConnectedNotification = general[0] as Boolean,
             keepNotificationAfterDisconnect = general[1] as Boolean,
             showBatteryInStatusBar = general[2] as Boolean,
+            useCompactNotification = general[3] as Boolean,
             isOffloadedFilteringDisabled = compat[0] as Boolean,
             isOffloadedBatchingDisabled = compat[1] as Boolean,
             useIndirectScanResultCallback = compat[2] as Boolean,
@@ -98,6 +101,11 @@ class GeneralSettingsViewModel @Inject constructor(
     fun setShowBatteryInStatusBar(enabled: Boolean) {
         log(TAG, INFO) { "setShowBatteryInStatusBar($enabled)" }
         generalSettings.showBatteryInStatusBar.valueBlocking = enabled
+    }
+
+    fun setUseCompactNotification(enabled: Boolean) {
+        log(TAG, INFO) { "setUseCompactNotification($enabled)" }
+        generalSettings.useCompactNotification.valueBlocking = enabled
     }
 
     fun setOffloadedFilteringDisabled(disabled: Boolean) {

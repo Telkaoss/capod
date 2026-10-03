@@ -71,6 +71,7 @@ class MonitorNotifications @Inject constructor(
         estimate: BatteryEstimate? = null,
         showHint: Boolean = false,
         showBatteryInStatusBar: Boolean = false,
+        compact: Boolean = false,
     ): NotificationCompat.Builder {
         if (device == null) {
             return baseBuilder(channelId).apply {
@@ -133,7 +134,9 @@ class MonitorNotifications @Inject constructor(
 
             setStyle(NotificationCompat.DecoratedCustomViewStyle())
             setCustomContentView(notificationViewFactory.createContentView(device))
-            setCustomBigContentView(notificationViewFactory.createBigContentView(device, estimate))
+            if (!compact) {
+                setCustomBigContentView(notificationViewFactory.createBigContentView(device, estimate))
+            }
             setContentTitle("$batteryText ~ $stateText")
             setSubText(null)
             val batteryIcon = if (showBatteryInStatusBar) {
@@ -182,18 +185,21 @@ class MonitorNotifications @Inject constructor(
         estimate: BatteryEstimate? = null,
         showHint: Boolean = false,
         showBatteryInStatusBar: Boolean = false,
+        compact: Boolean = false,
     ): Notification =
-        getBuilder(podDevice, NOTIFICATION_CHANNEL_ID, estimate, showHint, showBatteryInStatusBar).build()
+        getBuilder(podDevice, NOTIFICATION_CHANNEL_ID, estimate, showHint, showBatteryInStatusBar, compact).build()
 
     fun getNotificationConnected(
         podDevice: PodDevice?,
         estimate: BatteryEstimate? = null,
         showBatteryInStatusBar: Boolean = false,
+        compact: Boolean = false,
     ): Notification = getBuilder(
         podDevice,
         NOTIFICATION_CHANNEL_ID_CONNECTED,
         estimate,
         showBatteryInStatusBar = showBatteryInStatusBar,
+        compact = compact,
     ).build()
 
     fun getStartupNotification(): Notification =

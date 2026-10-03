@@ -44,6 +44,8 @@ class GeneralSettings @Inject constructor(
 
     val showBatteryInStatusBar = dataStore.createValue("core.monitor.notification.statusbar.battery", false)
 
+    val useCompactNotification = dataStore.createValue("core.monitor.notification.compact", false)
+
     val oldMinimumSignalQuality = dataStore.createValue("core.signal.minimum", 0.20f)
 
     val oldMainDeviceAddress = dataStore.createValue<BluetoothAddress?>(

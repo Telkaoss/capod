@@ -254,6 +254,7 @@ class MonitorService : Service() {
             useExtraNotification = generalSettings.useExtraMonitorNotification.flow.first(),
             keepAfterDisconnect = generalSettings.keepConnectedNotificationAfterDisconnect.flow.first(),
             showBatteryInStatusBar = generalSettings.showBatteryInStatusBar.flow.first(),
+            compactNotification = generalSettings.useCompactNotification.flow.first(),
         )
 
         val permissionsMissingOnStart = permissionTool.missingScanPermissions.first()
@@ -271,11 +272,13 @@ class MonitorService : Service() {
             generalSettings.useExtraMonitorNotification.flow,
             generalSettings.keepConnectedNotificationAfterDisconnect.flow,
             generalSettings.showBatteryInStatusBar.flow,
-        ) { useExtra, keepAfter, batteryIcon ->
+            generalSettings.useCompactNotification.flow,
+        ) { useExtra, keepAfter, batteryIcon, compact ->
             NotificationSettings(
                 useExtraNotification = useExtra,
                 keepAfterDisconnect = keepAfter,
                 showBatteryInStatusBar = batteryIcon,
+                compactNotification = compact,
             )
         }
 
@@ -308,6 +311,7 @@ class MonitorService : Service() {
                         estimate = estimate,
                         showHint = settings.useExtraNotification,
                         showBatteryInStatusBar = settings.showBatteryInStatusBar,
+                        compact = settings.compactNotification,
                     )
                 )
 
@@ -318,6 +322,7 @@ class MonitorService : Service() {
                             action.device,
                             estimate,
                             showBatteryInStatusBar = settings.showBatteryInStatusBar,
+                            compact = settings.compactNotification,
                         ),
                     )
                     ExtraNotificationAction.Cancel -> notificationManager.cancel(
@@ -613,6 +618,7 @@ internal data class NotificationSettings(
     val useExtraNotification: Boolean,
     val keepAfterDisconnect: Boolean,
     val showBatteryInStatusBar: Boolean = false,
+    val compactNotification: Boolean = false,
 )
 
 internal sealed interface ExtraNotificationAction {

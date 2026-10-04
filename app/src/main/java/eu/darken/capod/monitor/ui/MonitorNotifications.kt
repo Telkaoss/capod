@@ -134,7 +134,13 @@ class MonitorNotifications @Inject constructor(
 
             setStyle(NotificationCompat.DecoratedCustomViewStyle())
             setCustomContentView(notificationViewFactory.createContentView(device))
-            if (!compact) {
+            if (compact) {
+                // The lock screen never expands a redacted notification, so the mode buttons are only
+                // reachable there if the notification itself is public. The compact views show
+                // nothing beyond what the public version already does.
+                notificationViewFactory.createModesContentView(device)?.let { setCustomBigContentView(it) }
+                setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+            } else {
                 setCustomBigContentView(notificationViewFactory.createBigContentView(device, estimate))
             }
             setContentTitle("$batteryText ~ $stateText")

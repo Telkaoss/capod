@@ -71,6 +71,8 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
+import eu.darken.capod.monitor.core.visibleAncModes
+import eu.darken.capod.pods.core.apple.aap.protocol.AapSetting
 
 @AndroidEntryPoint
 class MonitorService : Service() {
@@ -586,6 +588,10 @@ private data class NotificationDeviceKey(
     val leftPodIcon: Int,
     val rightPodIcon: Int,
     val caseIcon: Int,
+    val isAapReady: Boolean,
+    val ancMode: AapSetting.AncMode.Value?,
+    val pendingAncMode: AapSetting.AncMode.Value?,
+    val visibleAncModes: List<AapSetting.AncMode.Value>,
 )
 
 private fun PodDevice.toNotificationKey(): NotificationDeviceKey = NotificationDeviceKey(
@@ -612,6 +618,10 @@ private fun PodDevice.toNotificationKey(): NotificationDeviceKey = NotificationD
     leftPodIcon = leftPodIcon,
     rightPodIcon = rightPodIcon,
     caseIcon = caseIcon,
+    isAapReady = isAapReady,
+    ancMode = ancMode?.current,
+    pendingAncMode = pendingAncMode,
+    visibleAncModes = visibleAncModes,
 )
 
 internal data class NotificationSettings(

@@ -5,6 +5,8 @@ import android.view.View
 import android.widget.RemoteViews
 import dagger.hilt.android.qualifiers.ApplicationContext
 import eu.darken.capod.R
+import eu.darken.capod.main.ui.components.iconDrawableRes
+import eu.darken.capod.main.ui.components.shortLabel
 import eu.darken.capod.monitor.core.PodDevice
 import eu.darken.capod.monitor.core.battery.BatteryEstimate
 import eu.darken.capod.monitor.core.battery.CaseCharges
@@ -12,6 +14,8 @@ import eu.darken.capod.monitor.core.battery.caseCharges
 import eu.darken.capod.monitor.core.battery.displayFraction
 import eu.darken.capod.monitor.core.battery.displayMinutes
 import eu.darken.capod.monitor.core.batteryCaseReading
+import eu.darken.capod.monitor.core.receiver.AncNotificationReceiver
+import eu.darken.capod.monitor.core.visibleAncModes
 import eu.darken.capod.pods.core.apple.PodModel
 import eu.darken.capod.pods.core.apple.ble.formatBatteryDurationShort
 import eu.darken.capod.pods.core.apple.ble.formatBatteryPercent
@@ -87,6 +91,40 @@ class MonitorNotificationViewFactory @Inject constructor(
         R.layout.monitor_notification_unknown_device_small
     ).apply {
         setTextViewText(R.id.device, device.getLabel(context))
+    }
+
+    /**
+     * Expanded view of the compact notification: the single battery line plus one button per
+     * listening mode. Null while the pods can't take a mode change, so there is nothing to expand.
+     */
+    fun createModesContentView(device: PodDevice): RemoteViews? {
+        if (!device.hasAncControl || !device.isAapReady) return null
+        val address = device.address ?: return null
+        val current = device.ancMode?.current ?: return null
+        val modes = device.visibleAncModes.ifEmpty { return null }
+        val shown = device.pendingAncMode?.takeIf { it in modes } ?: current
+
+        return RemoteViews(context.packageName, R.layout.monitor_notification_public_big).apply {
+            removeAllViews(R.id.battery_container)
+            addView(R.id.battery_container, createContentView(device))
+            removeAllViews(R.id.anc_modes)
+            modes.forEach { mode ->
+                val button = RemoteViews(context.packageName, R.layout.monitor_notification_anc_button).apply {
+                    setImageViewResource(R.id.anc_button, mode.iconDrawableRes())
+                    setContentDescription(R.id.anc_button, mode.shortLabel(context))
+                    setInt(
+                        R.id.anc_button,
+                        "setBackgroundResource",
+                        if (mode == shown) R.drawable.notification_anc_button_active else 0,
+                    )
+                    setOnClickPendingIntent(
+                        R.id.anc_button,
+                        AncNotificationReceiver.pendingIntent(context, address, mode),
+                    )
+                }
+                addView(R.id.anc_modes, button)
+            }
+        }
     }
 
     fun createBigContentView(device: PodDevice, estimate: BatteryEstimate? = null): RemoteViews = when {

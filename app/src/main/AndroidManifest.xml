@@ -72,6 +72,10 @@
         </receiver>
 
         <receiver
+            android:name=".monitor.core.receiver.AncNotificationReceiver"
+            android:exported="false" />
+
+        <receiver
             android:name=".monitor.core.receiver.BootCompletedReceiver"
             android:exported="true">
             <intent-filter>

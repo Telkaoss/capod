@@ -9,6 +9,7 @@ import androidx.glance.ColorFilter
 import androidx.glance.GlanceModifier
 import androidx.glance.Image
 import androidx.glance.ImageProvider
+import androidx.glance.LocalSize
 import androidx.glance.action.ActionParameters
 import androidx.glance.action.clickable
 import androidx.glance.appwidget.action.actionRunCallback
@@ -59,6 +60,10 @@ private fun GlanceAncActive(
     state: AncWidgetRenderState.Active,
     appWidgetId: Int,
 ) {
+    if (state.layout == AncLayout.BAR) {
+        AncBar(state, appWidgetId)
+        return
+    }
     val textColor = fixedAncColor(state.resolvedTextColor)
     val iconColor = fixedAncColor(state.resolvedIconColor)
     val showDeviceLabel = state.layout != AncLayout.ROW_ICONS
@@ -73,9 +78,82 @@ private fun GlanceAncActive(
             AncLayout.ROW_ICONS -> AncRowIcons(state.modes, state.resolvedIconColor, state.resolvedActiveColor, state.resolvedOnActiveColor, appWidgetId)
             AncLayout.COLUMN_ICONS -> AncColumnIcons(state.modes, state.resolvedIconColor, state.resolvedActiveColor, state.resolvedOnActiveColor, appWidgetId)
             AncLayout.QUAD_CORNERS -> AncQuadCorners(state.modes, state.resolvedIconColor, state.resolvedActiveColor, state.resolvedOnActiveColor, appWidgetId)
+            AncLayout.BAR -> Unit
         }
         if (showDeviceLabel) {
             GlanceAncDeviceLabel(state.deviceLabel, state.theme.showDeviceLabel, state.resolvedTextColor)
+        }
+    }
+}
+
+/**
+ * Search-bar styled single row: battery levels on the left, listening modes on the right. The pill
+ * keeps a fixed height because a 1-row cell is taller than a bar should be.
+ */
+@Composable
+private fun AncBar(
+    state: AncWidgetRenderState.Active,
+    appWidgetId: Int,
+) {
+    val textColor = fixedAncColor(state.resolvedTextColor)
+    val iconTint = ColorFilter.tint(fixedAncColor(state.resolvedIconColor))
+    val dividerColor = fixedAncColor(applyAncAlpha(state.resolvedIconColor, 60))
+    // The case level is the first thing to go when the launcher's cells are narrow.
+    val showCase = LocalSize.current.width >= BAR_FULL_BATTERY_MIN_WIDTH
+    val battery = state.battery.filter { showCase || !it.isCase }
+
+    AncBarRoot(state.resolvedBgColor) {
+        battery.forEach { item ->
+            Image(
+                provider = ImageProvider(item.iconRes),
+                contentDescription = null,
+                modifier = GlanceModifier.size(18.dp),
+                colorFilter = iconTint,
+            )
+            Text(
+                text = item.text,
+                style = TextStyle(color = textColor, fontSize = 12.sp, fontWeight = FontWeight.Bold),
+                maxLines = 1,
+                modifier = GlanceModifier.padding(start = 2.dp, end = 8.dp),
+            )
+        }
+        if (battery.isNotEmpty()) {
+            Spacer(modifier = GlanceModifier.width(1.dp).height(24.dp).background(dividerColor))
+        }
+        Row(
+            modifier = GlanceModifier.defaultWeight().fillMaxHeight(),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            state.modes.forEach { item ->
+                DividerRowCell(
+                    item,
+                    state.resolvedIconColor,
+                    state.resolvedActiveColor,
+                    state.resolvedOnActiveColor,
+                    appWidgetId,
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun AncBarRoot(
+    bgColor: Int,
+    extraModifier: GlanceModifier = GlanceModifier,
+    content: @Composable RowScope.() -> Unit,
+) {
+    Box(modifier = GlanceModifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        Row(
+            modifier = extraModifier
+                .fillMaxWidth()
+                .height(BAR_HEIGHT)
+                .background(fixedAncColor(bgColor))
+                .cornerRadius(BAR_HEIGHT / 2)
+                .padding(horizontal = 14.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            content()
         }
     }
 }
@@ -490,6 +568,18 @@ private fun GlanceAncMessage(
         textAlign = TextAlign.Center,
     )
 
+    if (state.bar) {
+        AncBarRoot(state.resolvedBgColor, clickModifier) {
+            Text(
+                text = listOfNotNull(state.primaryText, state.secondaryText).joinToString(" · "),
+                style = textStyle,
+                maxLines = 1,
+                modifier = GlanceModifier.defaultWeight(),
+            )
+        }
+        return
+    }
+
     AncWidgetRoot(state.resolvedBgColor, clickModifier) {
         Text(
             text = state.primaryText,
@@ -549,6 +639,9 @@ private fun GlanceAncDeviceLabel(
         )
     }
 }
+
+private val BAR_HEIGHT = 56.dp
+private val BAR_FULL_BATTERY_MIN_WIDTH = 350.dp
 
 private fun fixedAncColor(argb: Int): ColorProvider = ColorProvider(Color(argb))
 

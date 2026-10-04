@@ -112,6 +112,7 @@ class AncGlanceWidget : GlanceAppWidget() {
                 val heightCells = getCellsForSize(heightDp.value.toInt())
                 val layout = when {
                     widthCells <= 1 && heightCells <= 1 -> AncLayout.QUAD_CORNERS
+                    heightCells <= 1 && widthCells >= 4 -> AncLayout.BAR
                     heightCells <= 1 -> AncLayout.ROW_ICONS
                     widthCells <= 1 -> AncLayout.COLUMN_ICONS
                     widthCells > 2 -> AncLayout.ROW

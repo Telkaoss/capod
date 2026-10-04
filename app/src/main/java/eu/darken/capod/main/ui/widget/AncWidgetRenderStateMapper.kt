@@ -7,6 +7,8 @@ import eu.darken.capod.main.ui.components.shortLabel
 import eu.darken.capod.monitor.core.PodDevice
 import eu.darken.capod.monitor.core.visibleAncModes
 import eu.darken.capod.pods.core.apple.aap.protocol.AapSetting
+import eu.darken.capod.pods.core.apple.ble.isKnownBattery
+import kotlin.math.roundToInt
 
 object AncWidgetRenderStateMapper {
 
@@ -25,7 +27,8 @@ object AncWidgetRenderStateMapper {
         val activeColor = WidgetRenderStateMapper.resolveThemeColor(context, com.google.android.material.R.attr.colorSecondaryContainer)
         val onActiveColor = WidgetRenderStateMapper.resolveThemeColor(context, com.google.android.material.R.attr.colorOnSecondaryContainer)
 
-        return when {
+        val bar = layout == AncLayout.BAR
+        val state = when {
             !isPro -> AncWidgetRenderState.Message(
                 theme = theme,
                 resolvedBgColor = bgColor,
@@ -84,6 +87,7 @@ object AncWidgetRenderStateMapper {
 
             else -> {
                 val ancMode = device.ancMode ?: return AncWidgetRenderState.Message(
+                    bar = bar,
                     theme = theme,
                     resolvedBgColor = bgColor,
                     resolvedTextColor = textColor,
@@ -125,8 +129,23 @@ object AncWidgetRenderStateMapper {
                     modes = modeItems,
                     deviceLabel = profileLabel ?: device.getLabel(context),
                     layout = layout,
+                    battery = if (bar) device.barBattery() else emptyList(),
                 )
             }
         }
+        return if (bar && state is AncWidgetRenderState.Message) state.copy(bar = true) else state
     }
+
+    private fun PodDevice.barBattery(): List<BatteryItem> = when {
+        hasDualPods -> listOfNotNull(
+            BatteryItem(leftPodIcon, percentText(batteryLeft)),
+            if (hasCase) BatteryItem(caseIcon, percentText(batteryCase), isCase = true) else null,
+            BatteryItem(rightPodIcon, percentText(batteryRight)),
+        )
+
+        else -> listOf(BatteryItem(iconRes, percentText(batteryHeadset)))
+    }
+
+    private fun percentText(percent: Float): String =
+        if (isKnownBattery(percent)) "${(percent * 100).roundToInt()}%" else "–"
 }

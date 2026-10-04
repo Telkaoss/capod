@@ -23,6 +23,7 @@ sealed class AncWidgetRenderState {
         val modes: List<ModeItem>,
         val deviceLabel: String?,
         val layout: AncLayout,
+        val battery: List<BatteryItem> = emptyList(),
     ) : AncWidgetRenderState()
 
     data class Message(
@@ -32,6 +33,7 @@ sealed class AncWidgetRenderState {
         @ColorInt override val resolvedIconColor: Int,
         val primaryText: String,
         val secondaryText: String? = null,
+        val bar: Boolean = false,
     ) : AncWidgetRenderState()
 
     companion object {
@@ -80,8 +82,14 @@ enum class ButtonState {
 }
 
 enum class AncLayout {
-    QUAD_CORNERS, ROW_ICONS, COLUMN_ICONS, GRID_2X2, ROW, COLUMN,
+    QUAD_CORNERS, ROW_ICONS, COLUMN_ICONS, GRID_2X2, ROW, COLUMN, BAR,
 }
+
+data class BatteryItem(
+    @DrawableRes val iconRes: Int,
+    val text: String,
+    val isCase: Boolean = false,
+)
 
 private fun AapSetting.AncMode.Value.previewIconRes(): Int = when (this) {
     AapSetting.AncMode.Value.OFF -> R.drawable.ic_anc_off

@@ -250,7 +250,9 @@ private fun DividerCellIcon(
     val bgModifier = when (item.state) {
         ButtonState.ACTIVE -> GlanceModifier.background(fixedAncColor(resolvedActiveColor))
         ButtonState.PENDING -> GlanceModifier.background(fixedAncColor(applyAncAlpha(resolvedActiveColor, 153)))
-        ButtonState.INACTIVE -> GlanceModifier
+        // Explicitly transparent: with no background at all, the launcher keeps the circle from the
+        // previous active or pending state when it re-applies the views.
+        ButtonState.INACTIVE -> GlanceModifier.background(fixedAncColor(android.graphics.Color.TRANSPARENT))
     }
     val tint = when (item.state) {
         ButtonState.ACTIVE, ButtonState.PENDING -> ColorFilter.tint(fixedAncColor(resolvedOnActiveColor))
